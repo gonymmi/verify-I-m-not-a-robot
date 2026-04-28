@@ -1,2 +1,365 @@
-# verify-I-m-not-a-robot
-like Google's reCAPTCHA lol
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reCAPTCHA Verification</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .captcha-box {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .g_recaptcha_v3 {
+            margin-bottom: 10px;
+        }
+
+        .recaptcha-info {
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+        }
+
+        .recaptcha-info a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .alert.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .alert.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .score-badge.high {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .score-badge.medium {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .score-badge.low {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Verification</h1>
+            <p>Please verify that you're not a robot</p>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <form id="verificationForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+            </div>
+
+            <div class="captcha-box">
+                <div class="g_recaptcha_v3" id="recaptchaContainer"></div>
+                <div class="recaptcha-info">
+                    This site is protected by reCAPTCHA and the Google
+                    <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and
+                    <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">Verify & Submit</button>
+            <div class="loading" id="loading">
+                <span class="spinner"></span>Verifying...
+            </div>
+        </form>
+    </div>
+
+    <!-- Google reCAPTCHA v3 Script -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    
+    <script>
+        // Initialize reCAPTCHA v3
+        const RECAPTCHA_SITE_KEY = '6LfSKs4sAAAAAHp_rQzTqfo9LgaXu8lZCc1uvdaq';
+
+        // Wait for reCAPTCHA to load
+        window.addEventListener('load', function() {
+            grecaptcha.ready(function() {
+                grecaptcha.render('recaptchaContainer', {
+                    'sitekey': RECAPTCHA_SITE_KEY,
+                    'theme': 'light',
+                    'type': 'image',
+                    'size': 'normal',
+                    'callback': onRecaptchaSuccess,
+                    'expired-callback': onRecaptchaExpired,
+                    'error-callback': onRecaptchaError
+                });
+            });
+        });
+
+        // Form submission
+        document.getElementById('verificationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitForm();
+        });
+
+        function submitForm() {
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value;
+
+            // Validation
+            if (!email || !name) {
+                showAlert('Please fill in all fields', 'error');
+                return;
+            }
+
+            // Get reCAPTCHA token
+            grecaptcha.ready(function() {
+                grecaptcha.execute(RECAPTCHA_SITE_KEY, {action: 'submit'}).then(function(token) {
+                    // Show loading state
+                    submitBtn.disabled = true;
+                    loading.style.display = 'block';
+
+                    // Simulate verification (in production, send to backend)
+                    verifyWithBackend(token, email, name);
+                });
+            });
+        }
+
+        function verifyWithBackend(token, email, name) {
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+
+            // Simulate API call (replace with actual backend endpoint)
+            setTimeout(function() {
+                // In production, send this data to your backend:
+                // POST /verify-captcha
+                // {
+                //   token: token,
+                //   email: email,
+                //   name: name
+                // }
+
+                console.log('Verification Data:', {
+                    token: token,
+                    email: email,
+                    name: name,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Simulate random success/failure for demo
+                const isVerified = Math.random() > 0.2; // 80% success rate
+
+                if (isVerified) {
+                    showAlert('✓ Verification successful! You are not a robot.', 'success');
+                    document.getElementById('verificationForm').reset();
+                    grecaptcha.reset(); // Reset reCAPTCHA
+                } else {
+                    showAlert('✗ Verification failed. Please try again.', 'error');
+                    grecaptcha.reset(); // Reset reCAPTCHA
+                }
+
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }, 2000);
+        }
+
+        function onRecaptchaSuccess(token) {
+            console.log('reCAPTCHA token generated:', token);
+            showAlert('✓ reCAPTCHA verified successfully', 'warning');
+        }
+
+        function onRecaptchaExpired() {
+            console.log('reCAPTCHA token expired');
+            showAlert('reCAPTCHA expired. Please verify again.', 'warning');
+        }
+
+        function onRecaptchaError() {
+            console.log('reCAPTCHA error');
+            showAlert('reCAPTCHA error occurred. Please refresh the page.', 'error');
+        }
+
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alert-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert ${type}`;
+            alertDiv.textContent = message;
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alertDiv);
+
+            // Auto-hide after 5 seconds for non-error messages
+            if (type !== 'error') {
+                setTimeout(() => {
+                    alertDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
