@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>reCAPTCHA Verification</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>I'm Not a Robot - Verification</title>
     <style>
         * {
             margin: 0;
@@ -24,10 +23,10 @@
 
         .container {
             background: white;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 40px;
-            max-width: 400px;
+            max-width: 450px;
             width: 100%;
         }
 
@@ -38,7 +37,7 @@
 
         .header h1 {
             color: #333;
-            font-size: 24px;
+            font-size: 28px;
             margin-bottom: 10px;
         }
 
@@ -82,7 +81,9 @@
             background-color: #f9f9f9;
         }
 
-        .g_recaptcha_v3 {
+        .g-recaptcha {
+            display: flex;
+            justify-content: center;
             margin-bottom: 10px;
         }
 
@@ -110,12 +111,12 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .submit-btn:hover {
+        .submit-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
 
-        .submit-btn:active {
+        .submit-btn:active:not(:disabled) {
             transform: translateY(0);
         }
 
@@ -176,37 +177,13 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .score-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-
-        .score-badge.high {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .score-badge.medium {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .score-badge.low {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🤖 Verification</h1>
-            <p>Please verify that you're not a robot</p>
+            <p>Prove you're not a robot</p>
         </div>
 
         <div id="alert-container"></div>
@@ -214,16 +191,16 @@
         <form id="verificationForm">
             <div class="form-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                <input type="email" id="email" name="email" placeholder="you@example.com" required>
             </div>
 
             <div class="form-group">
                 <label for="name">Full Name</label>
-                <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+                <input type="text" id="name" name="name" placeholder="John Doe" required>
             </div>
 
             <div class="captcha-box">
-                <div class="g_recaptcha_v3" id="recaptchaContainer"></div>
+                <div class="g-recaptcha" data-sitekey="6LfSKs4sAAAAAHp_rQzTqfo9LgaXu8lZCc1uvdaq"></div>
                 <div class="recaptcha-info">
                     This site is protected by reCAPTCHA and the Google
                     <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and
@@ -238,111 +215,65 @@
         </form>
     </div>
 
-    <!-- Google reCAPTCHA v3 Script -->
+    <!-- Google reCAPTCHA v2 Script -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     
     <script>
-        // Initialize reCAPTCHA v3
-        const RECAPTCHA_SITE_KEY = '6LfSKs4sAAAAAHp_rQzTqfo9LgaXu8lZCc1uvdaq';
-
-        // Wait for reCAPTCHA to load
-        window.addEventListener('load', function() {
-            grecaptcha.ready(function() {
-                grecaptcha.render('recaptchaContainer', {
-                    'sitekey': RECAPTCHA_SITE_KEY,
-                    'theme': 'light',
-                    'type': 'image',
-                    'size': 'normal',
-                    'callback': onRecaptchaSuccess,
-                    'expired-callback': onRecaptchaExpired,
-                    'error-callback': onRecaptchaError
-                });
-            });
-        });
-
-        // Form submission
-        document.getElementById('verificationForm').addEventListener('submit', function(e) {
+        document.getElementById('verificationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            submitForm();
-        });
-
-        function submitForm() {
-            const submitBtn = document.getElementById('submitBtn');
-            const loading = document.getElementById('loading');
+            
             const email = document.getElementById('email').value;
             const name = document.getElementById('name').value;
-
-            // Validation
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            
             if (!email || !name) {
                 showAlert('Please fill in all fields', 'error');
                 return;
             }
 
             // Get reCAPTCHA token
-            grecaptcha.ready(function() {
-                grecaptcha.execute(RECAPTCHA_SITE_KEY, {action: 'submit'}).then(function(token) {
-                    // Show loading state
-                    submitBtn.disabled = true;
-                    loading.style.display = 'block';
+            const recaptchaToken = document.querySelector('[name="g-recaptcha-response"]')?.value;
+            
+            if (!recaptchaToken) {
+                showAlert('Please complete the reCAPTCHA', 'error');
+                return;
+            }
 
-                    // Simulate verification (in production, send to backend)
-                    verifyWithBackend(token, email, name);
-                });
-            });
-        }
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
 
-        function verifyWithBackend(token, email, name) {
-            const submitBtn = document.getElementById('submitBtn');
-            const loading = document.getElementById('loading');
-
-            // Simulate API call (replace with actual backend endpoint)
-            setTimeout(function() {
-                // In production, send this data to your backend:
-                // POST /verify-captcha
-                // {
-                //   token: token,
-                //   email: email,
-                //   name: name
-                // }
-
-                console.log('Verification Data:', {
-                    token: token,
-                    email: email,
-                    name: name,
-                    timestamp: new Date().toISOString()
+            try {
+                const response = await fetch('/verify-captcha', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        token: recaptchaToken,
+                        email: email,
+                        name: name
+                    })
                 });
 
-                // Simulate random success/failure for demo
-                const isVerified = Math.random() > 0.2; // 80% success rate
+                const data = await response.json();
 
-                if (isVerified) {
+                if (response.ok && data.success) {
                     showAlert('✓ Verification successful! You are not a robot.', 'success');
                     document.getElementById('verificationForm').reset();
-                    grecaptcha.reset(); // Reset reCAPTCHA
+                    grecaptcha.reset();
                 } else {
-                    showAlert('✗ Verification failed. Please try again.', 'error');
-                    grecaptcha.reset(); // Reset reCAPTCHA
+                    showAlert(data.message || '✗ Verification failed. Please try again.', 'error');
+                    grecaptcha.reset();
                 }
-
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('An error occurred. Please try again.', 'error');
+            } finally {
                 submitBtn.disabled = false;
                 loading.style.display = 'none';
-            }, 2000);
-        }
-
-        function onRecaptchaSuccess(token) {
-            console.log('reCAPTCHA token generated:', token);
-            showAlert('✓ reCAPTCHA verified successfully', 'warning');
-        }
-
-        function onRecaptchaExpired() {
-            console.log('reCAPTCHA token expired');
-            showAlert('reCAPTCHA expired. Please verify again.', 'warning');
-        }
-
-        function onRecaptchaError() {
-            console.log('reCAPTCHA error');
-            showAlert('reCAPTCHA error occurred. Please refresh the page.', 'error');
-        }
+            }
+        });
 
         function showAlert(message, type) {
             const alertContainer = document.getElementById('alert-container');
@@ -353,7 +284,6 @@
             alertContainer.innerHTML = '';
             alertContainer.appendChild(alertDiv);
 
-            // Auto-hide after 5 seconds for non-error messages
             if (type !== 'error') {
                 setTimeout(() => {
                     alertDiv.style.display = 'none';
