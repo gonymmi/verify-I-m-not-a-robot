@@ -1,285 +1,583 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>reCAPTCHA 데모</title>
-
-<!-- ====================================================
-  ✅ 수정할 곳은 딱 2곳뿐입니다!
-  
-  1. 아래 YOUR_SITE_KEY  → 사이트 키로 교체
-  2. 아래 YOUR_SECRET_KEY → 비밀 키로 교체 (서버 코드에서만 사용)
-  
-  Google reCAPTCHA 콘솔: https://www.google.com/recaptcha/admin
-===================================================== -->
-
-<script>
-  var SITE_KEY   = "6Le6Rs4sAAAAAEt-zEvtFs6IqXtTpusHprQRR9UO";    // ← 여기에 사이트 키 붙여넣기
-  var SECRET_KEY = "6Le6Rs4sAAAAAFcs5uVeNt-Qi3oOBqQnEJGx23Nz";  // ← 여기에 비밀 키 붙여넣기 (서버 검증용)
-</script>
-
-<!-- Google reCAPTCHA 공식 스크립트 -->
-<script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
-
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로봇이 아닙니다</title>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-
-body{
-  font-family:'DM Sans',sans-serif;
-  min-height:100vh;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  gap:24px;
-  background:#eef2f7;
-}
-
-/* ── 폼 카드 ── */
-.card{
-  background:#fff;
-  border:1px solid #dadce0;
-  border-radius:8px;
-  width:360px;
-  padding:36px 32px 28px;
-  box-shadow:0 2px 10px rgba(0,0,0,.1);
-}
-.card h1{
-  font-size:1.35rem;font-weight:600;
-  color:#202124;text-align:center;margin-bottom:4px;
-}
-.card .sub{
-  font-size:13px;color:#5f6368;
-  text-align:center;margin-bottom:24px;
-}
-
-.field{margin-bottom:14px;}
-.field label{display:block;font-size:13px;font-weight:500;color:#3c4043;margin-bottom:5px;}
-.field input{
-  width:100%;padding:10px 13px;
-  border:1px solid #dadce0;border-radius:4px;
-  font-size:14px;font-family:'DM Sans',sans-serif;
-  color:#202124;outline:none;
-  transition:border-color .2s,box-shadow .2s;
-}
-.field input:focus{border-color:#1a73e8;box-shadow:0 0 0 3px rgba(26,115,232,.15);}
-
-/* reCAPTCHA 위젯 영역 */
-.recaptcha-area{
-  margin:20px 0;
-  display:flex;justify-content:center;
-  min-height:78px;
-  align-items:center;
-}
-
-/* 성공 배너 */
-.success{
-  display:none;
-  background:#e6f4ea;
-  border-left:4px solid #34a853;
-  border-radius:3px;
-  padding:11px 14px;
-  font-size:13px;color:#137333;font-weight:500;
-  margin-bottom:14px;
-  animation:fadeUp .3s ease;
-}
-.success.on{display:block;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-
-/* 에러 배너 */
-.errmsg{
-  display:none;
-  background:#fce8e6;
-  border-left:4px solid #c5221f;
-  border-radius:3px;
-  padding:11px 14px;
-  font-size:13px;color:#c5221f;font-weight:500;
-  margin-bottom:14px;
-}
-.errmsg.on{display:block;}
-
-/* 제출 버튼 */
-.btn{
-  width:100%;background:#1a73e8;color:#fff;
-  border:none;border-radius:4px;
-  padding:11px;font-size:14px;font-weight:600;
-  font-family:'DM Sans',sans-serif;
-  cursor:pointer;transition:background .2s;
-  letter-spacing:.2px;
-}
-.btn:hover{background:#1558b0;}
-.btn:disabled{background:#a8c7fa;cursor:default;}
-
-/* 로딩 스피너 (reCAPTCHA 로드 전) */
-.loading-cap{
-  width:22px;height:22px;
-  border:3px solid #e0e0e0;
-  border-top-color:#4a90d9;
-  border-radius:50%;
-  animation:spin .7s linear infinite;
-}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#f0f0f0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@keyframes popIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
 
-/* 키 미설정 안내 */
-.no-key{
-  font-size:12px;color:#c5221f;
-  background:#fce8e6;border-radius:4px;
-  padding:8px 12px;text-align:center;
-}
+/* 체크박스 위젯 */
+.rc-anchor{width:300px;background:#f9f9f9;border:1px solid #d3d3d3;border-radius:3px;box-shadow:0 0 4px rgba(0,0,0,.08);display:flex;align-items:center;padding:12px 16px;gap:14px;cursor:pointer;user-select:none;position:relative}
+.rc-anchor:hover{background:#f0f0f0}
+.rc-checkbox{width:24px;height:24px;border:2px solid #c1c1c1;border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#fff}
+.rc-checkbox.checking{border-color:#4285f4}
+.rc-checkbox.checked{border-color:#1a73e8}
+.rc-checkbox .checkmark{display:none}
+.rc-checkbox.checked .checkmark{display:block}
+.rc-checkbox .spin-ring{display:none;width:18px;height:18px;border:2px solid #ddd;border-top-color:#4285f4;border-radius:50%;animation:spin .7s linear infinite}
+.rc-checkbox.checking .spin-ring{display:block}
+.rc-label{font-size:14px;color:#333;flex:1}
+.rc-branding{position:absolute;right:12px;top:50%;transform:translateY(-50%);text-align:center}
+.rc-icon{width:32px;height:32px;background:linear-gradient(135deg,#4285f4,#34a853,#fbbc05,#ea4335);border-radius:50%;margin:0 auto 2px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:14px}
+.rc-text{font-size:7.5px;color:#999;white-space:nowrap}
+.rc-links{font-size:7px;color:#aaa}
+.rc-links a{color:#aaa;text-decoration:none}
+
+/* 오버레이 */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.cbox{background:#fff;border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,.35);width:320px;overflow:hidden;animation:popIn .22s ease;position:relative}
+
+.cheader{background:#4a90d9;color:#fff;padding:11px 16px;font-size:13px;display:flex;align-items:center;gap:8px;line-height:1.4}
+.hclose{margin-left:auto;cursor:pointer;font-size:20px;opacity:.8;flex-shrink:0;line-height:1}
+.hclose:hover{opacity:1}
+.cinstr{padding:9px 16px;font-size:13px;color:#333;border-bottom:1px solid #eee;background:#fafafa}
+.cinstr b{color:#1a73e8}
+.glabel{font-size:10.5px;color:#aaa;padding:3px 16px;background:#fafafa}
+
+/* 그리드 */
+.grid{display:grid;gap:3px;padding:8px;background:#ccc}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.cell{aspect-ratio:1;cursor:pointer;position:relative;overflow:hidden;border:3px solid transparent;transition:border-color .12s}
+.cell:hover{filter:brightness(1.06)}
+.cell.sel{border-color:#1a73e8}
+.cell.sel::after{content:'✓';position:absolute;top:3px;right:3px;width:19px;height:19px;background:#1a73e8;color:#fff;border-radius:50%;font-size:11px;font-weight:bold;display:flex;align-items:center;justify-content:center}
+.cell canvas{width:100%;height:100%;display:block}
+
+/* 회전 */
+.rot-wrap{padding:14px;display:flex;flex-direction:column;align-items:center;gap:10px}
+#rotCanvas{border-radius:4px;border:2px solid #ddd;display:block;width:176px;height:176px;cursor:grab}
+#rotCanvas:active{cursor:grabbing}
+.rot-hint{font-size:11px;color:#888;text-align:center}
+.rot-btns{display:flex;gap:14px;align-items:center}
+.rbtn{width:46px;height:46px;border-radius:50%;border:2px solid #ddd;background:#fff;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;user-select:none}
+.rbtn:hover{background:#e8f0fe;border-color:#4285f4}
+.rot-deg{font-size:11px;color:#aaa;text-align:center;min-width:60px}
+
+/* 텍스트 챌린지 */
+.text-wrap{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.captcha-img{background:#f5f5f5;border:1px solid #ddd;border-radius:4px;padding:10px;text-align:center}
+#textCanvas{display:block;margin:0 auto}
+.text-inp{width:100%;border:1px solid #ccc;border-radius:4px;padding:8px 10px;font-size:14px;font-family:inherit;outline:none;transition:border-color .15s}
+.text-inp:focus{border-color:#4285f4;box-shadow:0 0 0 2px rgba(66,133,244,.15)}
+.text-inp.wrong{border-color:#ea4335;animation:shake .4s ease}
+
+/* 푸터 */
+.cfooter{padding:9px 16px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #eee;background:#fafafa}
+.ficons{display:flex;gap:6px}
+.ficon{width:32px;height:32px;border:none;background:none;cursor:pointer;border-radius:50%;font-size:15px;color:#666;display:flex;align-items:center;justify-content:center}
+.ficon:hover{background:#eee}
+.vbtn{background:#4285f4;color:#fff;border:none;border-radius:4px;padding:8px 22px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+.vbtn:hover{background:#3367d6}
+.vbtn.fail{background:#ea4335}
+
+/* 성공 */
+.success-scr{display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;gap:12px}
+.success-scr .ck{width:58px;height:58px;background:#34a853;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px}
+.success-scr p{font-size:16px;color:#34a853;font-weight:500}
+
+.page-title{font-size:21px;color:#333;font-weight:400;text-align:center}
+.page-sub{font-size:13px;color:#777;text-align:center}
 </style>
 </head>
 <body>
 
-<div class="card">
-  <h1>🔐 로그인</h1>
-  <p class="sub">계정에 로그인하세요</p>
+<div class="page-title">🤖 로봇 방지 확인</div>
+<div class="page-sub">아래 체크박스를 클릭하세요</div>
 
-  <div class="success" id="successMsg">✅ 인증이 완료되었습니다!</div>
-  <div class="errmsg"  id="errMsg"></div>
+<!-- 체크박스 위젯 -->
+<div class="rc-anchor" id="rcAnchor">
+  <div class="rc-checkbox" id="rcCb">
+    <div class="spin-ring"></div>
+    <svg class="checkmark" width="13" height="11" viewBox="0 0 13 11" fill="none">
+      <path d="M1.5 5.5L5 9L11.5 1.5" stroke="#1a73e8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <span class="rc-label">로봇이 아닙니다</span>
+  <div class="rc-branding">
+    <div class="rc-icon">r</div>
+    <div class="rc-text">reCAPTCHA</div>
+    <div class="rc-links"><a href="#">개인정보</a> · <a href="#">약관</a></div>
+  </div>
+</div>
 
-  <form id="loginForm" novalidate>
-    <div class="field">
-      <label for="email">이메일</label>
-      <input type="email" id="email" name="email" placeholder="example@gmail.com" required/>
+<!-- 챌린지 팝업 -->
+<div class="overlay" id="overlay">
+  <div class="cbox" id="cbox">
+
+    <div class="cheader">
+      <span id="headerTxt">신호등이 있는 이미지를 모두 선택하세요</span>
+      <span class="hclose" id="hclose">✕</span>
     </div>
-    <div class="field">
-      <label for="pw">비밀번호</label>
-      <input type="password" id="pw" name="password" placeholder="비밀번호 입력" required/>
-    </div>
 
-    <!-- reCAPTCHA 렌더링 위치 -->
-    <div class="recaptcha-area">
-      <div id="recaptchaWidget">
-        <div class="loading-cap" id="capLoader"></div>
+    <!-- 이미지 그리드 -->
+    <div id="gridSec">
+      <div class="cinstr">해당하는 항목이 <b>없으면</b> 확인을 클릭하세요</div>
+      <div class="glabel" id="glabel">3×3 격자</div>
+      <div class="grid g3" id="grid"></div>
+      <div class="cfooter">
+        <div class="ficons">
+          <button class="ficon" id="btn-refresh-grid" title="새 문제">🔄</button>
+          <button class="ficon" id="btn-go-rot" title="회전 문제">🔁</button>
+          <button class="ficon" id="btn-go-text" title="텍스트 입력">🔤</button>
+        </div>
+        <button class="vbtn" id="gridVerify">확인</button>
       </div>
     </div>
 
-    <button type="submit" class="btn" id="submitBtn" disabled>로그인</button>
-  </form>
+    <!-- 회전 -->
+    <div id="rotSec" style="display:none">
+      <div class="cinstr">이미지를 <b>올바른 방향</b>으로 회전하세요</div>
+      <div class="rot-wrap">
+        <canvas id="rotCanvas" width="176" height="176"></canvas>
+        <div class="rot-hint">버튼을 누르거나 드래그하여 회전</div>
+        <div class="rot-btns">
+          <button class="rbtn" id="rotL">↺</button>
+          <div class="rot-deg" id="rotDeg">0°</div>
+          <button class="rbtn" id="rotR">↻</button>
+        </div>
+      </div>
+      <div class="cfooter">
+        <div class="ficons">
+          <button class="ficon" id="btn-refresh-rot" title="새 이미지">🔄</button>
+          <button class="ficon" id="btn-go-grid2" title="이미지 선택">🖼️</button>
+          <button class="ficon" id="btn-go-text2" title="텍스트 입력">🔤</button>
+        </div>
+        <button class="vbtn" id="rotVerify">확인</button>
+      </div>
+    </div>
+
+    <!-- 텍스트 -->
+    <div id="textSec" style="display:none">
+      <div class="cinstr">이미지의 문자를 <b>입력</b>하세요</div>
+      <div class="text-wrap">
+        <div class="captcha-img">
+          <canvas id="textCanvas" width="260" height="80"></canvas>
+        </div>
+        <input class="text-inp" id="textInp" placeholder="문자를 입력하세요" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="cfooter">
+        <div class="ficons">
+          <button class="ficon" id="btn-refresh-text" title="새 문제">🔄</button>
+          <button class="ficon" id="btn-go-grid3" title="이미지 선택">🖼️</button>
+          <button class="ficon" id="btn-go-rot2" title="회전 문제">🔁</button>
+        </div>
+        <button class="vbtn" id="textVerify">확인</button>
+      </div>
+    </div>
+
+    <!-- 성공 -->
+    <div class="success-scr" id="successScr">
+      <div class="ck">✓</div>
+      <p>인증 완료!</p>
+    </div>
+
+  </div>
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════════
-   reCAPTCHA 동적 렌더링
-   – api.js가 로드되면 onRecaptchaLoad() 자동 호출됨
-═══════════════════════════════════════════════════ */
-var captchaToken = '';
+// ── 유틸 ──────────────────────────────────────────────
+function rnd(a,b){return a+Math.random()*(b-a);}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
 
-function onRecaptchaLoad() {
-  // 키가 기본값이면 안내 표시
-  if (SITE_KEY === 'YOUR_SITE_KEY') {
-    document.getElementById('capLoader').style.display = 'none';
-    document.getElementById('recaptchaWidget').innerHTML =
-      '<div class="no-key">⚠️ SITE_KEY를 설정해주세요</div>';
-    return;
+// ── 챌린지 종류 ───────────────────────────────────────
+var CHAL = [
+  {label:'신호등',draw:function(ctx,x,y,s){
+    ctx.fillStyle='#555';ctx.fillRect(x+s*.42,y+s*.1,s*.16,s*.85);
+    ctx.fillStyle='#222';roundRect(ctx,x+s*.1,y+s*.05,s*.8,s*.65,3);ctx.fill();
+    ['#e74c3c','#f39c12','#2ecc71'].forEach(function(c,i){ctx.fillStyle=c;ctx.beginPath();ctx.arc(x+s*.5,y+s*(.16+i*.18),s*.11,0,Math.PI*2);ctx.fill();});
+  }},
+  {label:'소화전',draw:function(ctx,x,y,s){
+    ctx.fillStyle='#e74c3c';roundRect(ctx,x+s*.28,y+s*.1,s*.44,s*.78,4);ctx.fill();
+    ctx.fillStyle='#c0392b';ctx.fillRect(x+s*.16,y+s*.28,s*.68,s*.11);ctx.fillRect(x+s*.16,y+s*.52,s*.68,s*.11);
+    ctx.fillStyle='#888';ctx.beginPath();ctx.arc(x+s*.5,y+s*.1,s*.1,0,Math.PI*2);ctx.fill();
+  }},
+  {label:'자전거',draw:function(ctx,x,y,s){
+    ctx.strokeStyle='#444';ctx.lineWidth=s*.055;
+    ctx.beginPath();ctx.arc(x+s*.22,y+s*.68,s*.2,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(x+s*.78,y+s*.68,s*.2,0,Math.PI*2);ctx.stroke();
+    ctx.lineWidth=s*.045;
+    ctx.beginPath();ctx.moveTo(x+s*.22,y+s*.68);ctx.lineTo(x+s*.5,y+s*.28);ctx.lineTo(x+s*.78,y+s*.68);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x+s*.5,y+s*.28);ctx.lineTo(x+s*.36,y+s*.68);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x+s*.68,y+s*.28);ctx.lineTo(x+s*.88,y+s*.32);ctx.stroke();
+    ctx.lineWidth=1;
+  }},
+  {label:'버스',draw:function(ctx,x,y,s){
+    ctx.fillStyle='#2980b9';roundRect(ctx,x+s*.05,y+s*.15,s*.9,s*.65,4);ctx.fill();
+    ctx.fillStyle='#1a5276';ctx.fillRect(x+s*.05,y+s*.15,s*.9,s*.09);
+    ctx.fillStyle='#aed6f1';
+    [0,1,2].forEach(function(i){ctx.fillRect(x+s*(.12+i*.27),y+s*.27,s*.19,s*.17);});
+    ctx.fillStyle='#d6eaf8';ctx.fillRect(x+s*.68,y+s*.44,s*.18,s*.28);
+    ctx.fillStyle='#111';
+    ctx.beginPath();ctx.arc(x+s*.22,y+s*.8,s*.11,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(x+s*.78,y+s*.8,s*.11,0,Math.PI*2);ctx.fill();
+  }},
+  {label:'택시',draw:function(ctx,x,y,s){
+    ctx.fillStyle='#f1c40f';roundRect(ctx,x+s*.05,y+s*.3,s*.9,s*.5,5);ctx.fill();
+    ctx.fillStyle='#f39c12';roundRect(ctx,x+s*.15,y+s*.14,s*.7,s*.2,4);ctx.fill();
+    ctx.fillStyle='#aed6f1';ctx.fillRect(x+s*.18,y+s*.16,s*.27,s*.15);ctx.fillRect(x+s*.55,y+s*.16,s*.27,s*.15);
+    ctx.fillStyle='#111';ctx.beginPath();ctx.arc(x+s*.22,y+s*.8,s*.11,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(x+s*.78,y+s*.8,s*.11,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#e74c3c';roundRect(ctx,x+s*.34,y+s*.2,s*.32,s*.09,2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='bold '+Math.round(s*.09)+'px sans-serif';ctx.textAlign='center';ctx.fillText('TAXI',x+s*.5,y+s*.3);
+  }},
+  {label:'가로등',draw:function(ctx,x,y,s){
+    ctx.fillStyle='#7f8c8d';ctx.fillRect(x+s*.44,y+s*.18,s*.12,s*.78);
+    ctx.fillStyle='#95a5a6';ctx.fillRect(x+s*.18,y+s*.18,s*.64,s*.07);
+    ctx.fillStyle='#f39c12';roundRect(ctx,x+s*.14,y+s*.04,s*.38,s*.18,3);ctx.fill();
+    ctx.fillStyle='#fff9c4';ctx.fillRect(x+s*.17,y+s*.07,s*.32,s*.1);
+  }},
+  {label:'오토바이',draw:function(ctx,x,y,s){
+    ctx.strokeStyle='#333';ctx.lineWidth=s*.055;
+    ctx.beginPath();ctx.arc(x+s*.2,y+s*.7,s*.2,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(x+s*.8,y+s*.7,s*.2,0,Math.PI*2);ctx.stroke();
+    ctx.lineWidth=s*.045;
+    ctx.beginPath();ctx.moveTo(x+s*.2,y+s*.7);ctx.lineTo(x+s*.45,y+s*.32);ctx.lineTo(x+s*.8,y+s*.7);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x+s*.45,y+s*.32);ctx.lineTo(x+s*.72,y+s*.46);ctx.stroke();
+    ctx.fillStyle='#8e44ad';ctx.beginPath();ctx.arc(x+s*.45,y+s*.3,s*.09,0,Math.PI*2);ctx.fill();
+    ctx.lineWidth=1;
+  }},
+  {label:'횡단보도',draw:function(ctx,x,y,s){
+    ctx.fillStyle='#555';ctx.fillRect(x,y+s*.38,s,s*.62);
+    ctx.fillStyle='#fff';
+    [0,1,2,3,4].forEach(function(i){ctx.fillRect(x+s*.04,y+s*(.4+i*.1),s*.92,s*.06);});
+    ctx.fillStyle='#2c3e50';ctx.beginPath();ctx.arc(x+s*.5,y+s*.15,s*.09,0,Math.PI*2);ctx.fill();
+    ctx.fillRect(x+s*.46,y+s*.24,s*.08,s*.14);
+  }},
+];
+
+// ── 배경 그리기 ───────────────────────────────────────
+var SCENES = ['street','street','night','rain','parking','blur'];
+
+function drawBg(ctx,w,h,scene){
+  if(scene==='night'){
+    var g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'#0d1117');g.addColorStop(1,'#1a2332');
+    ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    for(var i=0;i<25;i++){ctx.fillStyle='rgba(255,255,255,'+rnd(.2,.8)+')';ctx.fillRect(rnd(0,w),rnd(0,h*.5),1,1);}
+    ctx.fillStyle='#111a24';ctx.fillRect(0,h*.6,w,h*.4);
+  } else if(scene==='rain'){
+    var g2=ctx.createLinearGradient(0,0,0,h);g2.addColorStop(0,'#4a5568');g2.addColorStop(1,'#718096');
+    ctx.fillStyle=g2;ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='#2d3748';ctx.fillRect(0,h*.65,w,h*.35);
+    ctx.strokeStyle='rgba(174,214,241,.3)';ctx.lineWidth=.7;
+    for(var j=0;j<35;j++){var rx=rnd(0,w),ry=rnd(0,h);ctx.beginPath();ctx.moveTo(rx,ry);ctx.lineTo(rx-2,ry+9);ctx.stroke();}
+    ctx.lineWidth=1;
+  } else if(scene==='parking'){
+    ctx.fillStyle='#adb5bd';ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+    for(var k=0;k<3;k++){ctx.beginPath();ctx.moveTo(0,h*(k*.3+.1));ctx.lineTo(w,h*(k*.3+.1));ctx.stroke();}
+    ctx.setLineDash([]);ctx.lineWidth=1;
+  } else if(scene==='blur'){
+    var cols=[['#667eea','#764ba2'],['#f093fb','#f5576c'],['#4facfe','#00f2fe']];
+    var c=pick(cols);var g3=ctx.createLinearGradient(0,0,w,h);g3.addColorStop(0,c[0]);g3.addColorStop(1,c[1]);
+    ctx.fillStyle=g3;ctx.fillRect(0,0,w,h);
+    for(var m=0;m<6;m++){ctx.fillStyle='rgba(255,255,255,'+rnd(.04,.1)+')';ctx.beginPath();ctx.arc(rnd(0,w),rnd(0,h),rnd(15,35),0,Math.PI*2);ctx.fill();}
+  } else {
+    var pals=[['#87ceeb','#b0c4de'],['#dfe6e9','#b2bec3'],['#a8d8ea','#c0c0c0']];
+    var p=pick(pals);var g4=ctx.createLinearGradient(0,0,0,h);g4.addColorStop(0,p[0]);g4.addColorStop(.65,p[1]);
+    ctx.fillStyle=g4;ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='rgba(80,80,80,.55)';ctx.fillRect(0,h*.58,w,h*.42);
+    for(var n=0;n<3;n++){ctx.fillStyle='rgba(0,0,0,.1)';var bw=rnd(10,22);ctx.fillRect(rnd(0,w-bw),h*.15,bw,rnd(12,30));}
+  }
+}
+
+function drawNoise(ctx,w,h){
+  for(var i=0;i<120;i++){ctx.fillStyle='rgba(0,0,0,'+rnd(.015,.06)+')';ctx.fillRect(rnd(0,w),rnd(0,h),1,1);}
+}
+
+function drawCell(canvas, hasTarget, ch, scene){
+  var ctx=canvas.getContext('2d');
+  var w=canvas.width, h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  drawBg(ctx,w,h,scene);
+
+  // 방해 오브젝트
+  var distractors=CHAL.filter(function(c){return c.label!==ch.label;});
+  if(Math.random()<.5){
+    var d=pick(distractors);var ds=rnd(.16,.26)*w;
+    ctx.globalAlpha=rnd(.3,.55);d.draw(ctx,rnd(0,.7)*w,rnd(0,.65)*h,ds);ctx.globalAlpha=1;
   }
 
-  document.getElementById('capLoader').style.display = 'none';
+  if(hasTarget){
+    var size=rnd(.29,.47)*w;
+    var tx=rnd(.02,.96-size/w)*w;
+    var ty=rnd(.02,.88-size/h)*h;
+    if(scene==='night'){ctx.filter='brightness(.65) contrast(1.3)';}
+    if(scene==='rain'){ctx.filter='contrast(.82) saturate(.75)';}
+    ch.draw(ctx,tx,ty,size);
+    ctx.filter='none';
+  }
 
-  grecaptcha.render('recaptchaWidget', {
-    sitekey:          SITE_KEY,
-    callback:         onVerified,       // 인증 성공
-    'expired-callback': onExpired,      // 만료
-    'error-callback':   onCapError      // 오류
+  // 추가 방해물
+  if(Math.random()<.35){
+    var d2=pick(distractors);ctx.globalAlpha=rnd(.15,.38);d2.draw(ctx,rnd(0,.8)*w,rnd(0,.72)*h,rnd(.1,.18)*w);ctx.globalAlpha=1;
+  }
+
+  // 노이즈 선
+  ctx.strokeStyle='rgba(0,0,0,.12)';ctx.lineWidth=.8;
+  if(Math.random()<.4){ctx.beginPath();ctx.moveTo(rnd(0,w),0);ctx.lineTo(rnd(0,w),h*.35);ctx.stroke();}
+  ctx.lineWidth=1;
+  drawNoise(ctx,w,h);
+}
+
+// ── 그리드 상태 ───────────────────────────────────────
+var curCh=null, selCells={}, targetCells={}, gridSize=3, attempts=0;
+
+function buildGrid(sz){
+  sz=sz||gridSize; gridSize=sz;
+  var grid=document.getElementById('grid');
+  grid.innerHTML='';
+  grid.className='grid '+(sz===4?'g4':'g3');
+  selCells={}; targetCells={};
+  var total=sz*sz;
+  curCh=CHAL[Math.floor(Math.random()*CHAL.length)];
+  document.getElementById('headerTxt').textContent=curCh.label+'이(가) 있는 이미지를 모두 선택하세요';
+  document.getElementById('glabel').textContent=sz+'×'+sz+' 격자';
+  var n=2+Math.floor(Math.random()*(sz===3?4:5));
+  while(Object.keys(targetCells).length<Math.min(n,total-1)){targetCells[Math.floor(Math.random()*total)]=true;}
+  for(var i=0;i<total;i++){
+    (function(idx){
+      var cell=document.createElement('div');cell.className='cell';
+      var cv=document.createElement('canvas');cv.width=96;cv.height=96;
+      drawCell(cv,!!targetCells[idx],curCh,pick(SCENES));
+      cell.appendChild(cv);
+      cell.addEventListener('click',function(){
+        if(selCells[idx]){delete selCells[idx];cell.classList.remove('sel');}
+        else{selCells[idx]=true;cell.classList.add('sel');}
+      });
+      grid.appendChild(cell);
+    })(i);
+  }
+}
+
+function verifyGrid(){
+  var tKeys=Object.keys(targetCells);
+  var sKeys=Object.keys(selCells);
+  var correct=tKeys.every(function(k){return selCells[k];});
+  var noExtra=sKeys.every(function(k){return targetCells[k];});
+  if(correct&&noExtra&&sKeys.length>0){showSuccess();return;}
+  attempts++;
+  var box=document.getElementById('cbox');
+  box.style.animation='none';void box.offsetWidth;box.style.animation='shake .45s ease';
+  setTimeout(function(){box.style.animation='';buildGrid();},500);
+}
+
+// ── 회전 챌린지 ───────────────────────────────────────
+var rotAngle=0, isDrag=false, lastDragAngle=0;
+
+var ROT_SCENES=[
+  function(ctx,w,h){
+    ctx.fillStyle='#87CEEB';ctx.fillRect(-w/2,-h/2,w,h);
+    ctx.fillStyle='#27ae60';ctx.fillRect(-w/2,h*.08,w,h/2);
+    ctx.fillStyle='#e17055';ctx.fillRect(-w*.24,-h*.07,w*.48,h*.33);
+    ctx.fillStyle='#d63031';ctx.beginPath();ctx.moveTo(-w*.33,-h*.07);ctx.lineTo(0,-h*.37);ctx.lineTo(w*.33,-h*.07);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#2d3436';ctx.fillRect(-w*.08,h*.08,w*.16,h*.18);
+    ctx.fillStyle='rgba(255,255,255,.85)';ctx.font='bold '+Math.round(w*.13)+'px sans-serif';ctx.textAlign='center';ctx.fillText('↑',0,-h*.43);
+  },
+  function(ctx,w,h){
+    var g=ctx.createLinearGradient(-w/2,-h/2,w/2,h/2);g.addColorStop(0,'#667eea');g.addColorStop(1,'#764ba2');
+    ctx.fillStyle=g;ctx.fillRect(-w/2,-h/2,w,h);
+    ctx.fillStyle='#fff';ctx.font='bold '+Math.round(w*.42)+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('↑',0,0);
+    ctx.font=Math.round(w*.1)+'px sans-serif';ctx.fillText('위로 세우세요',0,h*.35);
+  },
+  function(ctx,w,h){
+    ctx.fillStyle='#ffeaa7';ctx.fillRect(-w/2,-h/2,w,h);
+    ctx.fillStyle='#fdcb6e';ctx.beginPath();ctx.arc(0,0,w*.33,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#2d3436';ctx.beginPath();ctx.arc(-w*.1,-h*.05,w*.055,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(w*.1,-h*.05,w*.055,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(0,h*.07,w*.14,0,Math.PI);ctx.strokeStyle='#2d3436';ctx.lineWidth=3;ctx.stroke();ctx.lineWidth=1;
+    ctx.fillStyle='rgba(45,52,54,.7)';ctx.font=Math.round(w*.09)+'px sans-serif';ctx.textAlign='center';ctx.fillText('↑ 바로세우기',0,-h*.4);
+  },
+];
+
+var curRotScene=null;
+function buildRot(){
+  rotAngle=(Math.floor(Math.random()*10)+1)*34;
+  curRotScene=pick(ROT_SCENES);
+  drawRot();
+}
+function drawRot(){
+  var cv=document.getElementById('rotCanvas'),ctx=cv.getContext('2d');
+  var w=cv.width,h=cv.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.save();ctx.translate(w/2,h/2);ctx.rotate(rotAngle*Math.PI/180);
+  curRotScene(ctx,w,h);
+  ctx.restore();
+  document.getElementById('rotDeg').textContent=Math.round(rotAngle)+'°';
+}
+function rotBy(deg){rotAngle=(rotAngle+deg+360)%360;drawRot();}
+function verifyRot(){
+  var diff=Math.min(Math.abs(rotAngle),360-Math.abs(rotAngle));
+  if(diff<=22){showSuccess();return;}
+  var btn=document.getElementById('rotVerify');
+  btn.textContent='틀렸어요!';btn.classList.add('fail');
+  setTimeout(function(){btn.textContent='확인';btn.classList.remove('fail');buildRot();},1100);
+}
+
+// 드래그 회전
+(function(){
+  function getAngle(cv,e){
+    var r=cv.getBoundingClientRect();
+    var cx=r.left+r.width/2,cy=r.top+r.height/2;
+    var ex=e.touches?e.touches[0].clientX:e.clientX;
+    var ey=e.touches?e.touches[0].clientY:e.clientY;
+    return Math.atan2(ey-cy,ex-cx)*180/Math.PI;
+  }
+  document.addEventListener('mousedown',function(e){
+    var cv=document.getElementById('rotCanvas');
+    if(e.target===cv){isDrag=true;lastDragAngle=getAngle(cv,e);}
   });
+  document.addEventListener('mousemove',function(e){
+    if(!isDrag)return;
+    var cv=document.getElementById('rotCanvas');
+    var a=getAngle(cv,e),delta=a-lastDragAngle;
+    if(delta>180)delta-=360;if(delta<-180)delta+=360;
+    rotAngle=(rotAngle+delta+360)%360;lastDragAngle=a;drawRot();
+  });
+  document.addEventListener('mouseup',function(){isDrag=false;});
+  document.addEventListener('touchstart',function(e){
+    var cv=document.getElementById('rotCanvas');
+    if(e.target===cv){isDrag=true;lastDragAngle=getAngle(cv,e);e.preventDefault();}
+  },{passive:false});
+  document.addEventListener('touchmove',function(e){
+    if(!isDrag)return;
+    var cv=document.getElementById('rotCanvas');
+    var a=getAngle(cv,e),delta=a-lastDragAngle;
+    if(delta>180)delta-=360;if(delta<-180)delta+=360;
+    rotAngle=(rotAngle+delta+360)%360;lastDragAngle=a;drawRot();e.preventDefault();
+  },{passive:false});
+  document.addEventListener('touchend',function(){isDrag=false;});
+})();
+
+// ── 텍스트 챌린지 ─────────────────────────────────────
+var CHARS='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+var captchaAns='';
+function buildText(){
+  captchaAns='';
+  var len=5+Math.floor(Math.random()*2);
+  for(var i=0;i<len;i++) captchaAns+=CHARS[Math.floor(Math.random()*CHARS.length)];
+  document.getElementById('textInp').value='';
+  document.getElementById('textInp').classList.remove('wrong');
+  drawCaptchaText();
 }
-
-// ✅ 인증 성공
-function onVerified(token) {
-  captchaToken = token;
-  document.getElementById('submitBtn').disabled = false;
-  showSuccess('✅ 인증이 완료되었습니다!');
-  hideErr();
-}
-
-// ⏰ 만료
-function onExpired() {
-  captchaToken = '';
-  document.getElementById('submitBtn').disabled = true;
-  hideSuccess();
-  showErr('⚠️ reCAPTCHA가 만료되었습니다. 다시 인증해주세요.');
-}
-
-// ❌ 오류
-function onCapError() {
-  captchaToken = '';
-  showErr('❌ reCAPTCHA 오류. 네트워크를 확인해주세요.');
-}
-
-/* ═══════════════════════════════════════════════════
-   폼 제출
-═══════════════════════════════════════════════════ */
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  hideErr(); hideSuccess();
-
-  var email = document.getElementById('email').value.trim();
-  var pw    = document.getElementById('pw').value;
-
-  if (!email)                         { showErr('이메일을 입력해주세요.'); return; }
-  if (!/\S+@\S+\.\S+/.test(email))   { showErr('이메일 형식이 올바르지 않습니다.'); return; }
-  if (!pw)                            { showErr('비밀번호를 입력해주세요.'); return; }
-  if (!captchaToken)                  { showErr('reCAPTCHA 인증을 먼저 완료해주세요.'); return; }
-
-  /* ──────────────────────────────────────────
-     🔽 서버로 전송하는 부분
-     실제 서버가 있다면 아래 fetch 코드를 사용하세요.
-
-     서버에서는 아래처럼 비밀 키로 토큰을 검증합니다:
-     POST https://www.google.com/recaptcha/api/siteverify
-       ?secret=YOUR_SECRET_KEY
-       &response=captchaToken
-
-     Node.js 예시:
-       const res = await fetch(
-         `https://www.google.com/recaptcha/api/siteverify?secret=${SECRET}&response=${token}`,
-         { method:'POST' }
-       );
-       const { success } = await res.json();
-  ────────────────────────────────────────── */
-
-  // 서버 연동 예시 (주석 해제해서 사용)
-  /*
-  try {
-    var resp = await fetch('/api/login', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email, password: pw, 'g-recaptcha-response': captchaToken })
-    });
-    var data = await resp.json();
-    if (data.success) {
-      showSuccess('✅ 로그인 성공!');
-      // window.location.href = '/dashboard';
-    } else {
-      showErr(data.message || '로그인 실패');
-      grecaptcha.reset(); captchaToken = '';
-      document.getElementById('submitBtn').disabled = true;
-    }
-  } catch(err) {
-    showErr('서버 연결 오류: ' + err.message);
+function drawCaptchaText(){
+  var cv=document.getElementById('textCanvas'),ctx=cv.getContext('2d');
+  var w=cv.width,h=cv.height;
+  ctx.clearRect(0,0,w,h);
+  var bg=[['#1a1a2e','#16213e'],['#2c3e50','#34495e'],['#1b2631','#2e4053']];
+  var b=pick(bg);var g=ctx.createLinearGradient(0,0,w,h);g.addColorStop(0,b[0]);g.addColorStop(1,b[1]);
+  ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+  // 간섭선
+  for(var i=0;i<14;i++){
+    ctx.strokeStyle='rgba('+Math.floor(rnd(80,255))+','+Math.floor(rnd(80,255))+','+Math.floor(rnd(80,255))+','+rnd(.12,.38)+')';
+    ctx.lineWidth=rnd(.5,1.8);
+    ctx.beginPath();ctx.moveTo(rnd(0,w),rnd(0,h));ctx.lineTo(rnd(0,w),rnd(0,h));ctx.stroke();
   }
-  */
+  // 노이즈
+  for(var j=0;j<280;j++){ctx.fillStyle='rgba(255,255,255,'+rnd(.02,.12)+')';ctx.fillRect(rnd(0,w),rnd(0,h),1,1);}
+  // 글자
+  var charW=w/captchaAns.length;
+  var colors=['#ff6b6b','#feca57','#48dbfb','#ff9ff3','#54a0ff','#5f27cd','#00d2d3','#ff9f43','#a29bfe','#fd79a8'];
+  for(var k=0;k<captchaAns.length;k++){
+    ctx.save();
+    ctx.translate(charW*k+charW/2,h/2);
+    ctx.rotate(rnd(-0.38,0.38));
+    var sc=rnd(.85,1.18);ctx.scale(sc,sc);
+    ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=4;
+    ctx.fillStyle=colors[Math.floor(Math.random()*colors.length)];
+    ctx.font='bold '+Math.round(rnd(22,33))+'px '+pick(['Georgia','Arial','Courier New','Times New Roman']);
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(captchaAns[k],0,rnd(-4,4));
+    ctx.shadowBlur=0;ctx.restore();
+  }
+  ctx.lineWidth=1;
+}
+function verifyText(){
+  var inp=document.getElementById('textInp').value.trim();
+  if(inp.toLowerCase()===captchaAns.toLowerCase()){showSuccess();return;}
+  var el=document.getElementById('textInp');
+  el.classList.add('wrong');
+  setTimeout(function(){el.classList.remove('wrong');el.value='';buildText();},900);
+}
 
-  // 서버 없는 데모 환경 → 성공 처리
-  showSuccess('✅ 인증이 완료되었습니다!');
+// ── 화면 전환 ─────────────────────────────────────────
+function showOnly(id){
+  ['gridSec','rotSec','textSec','successScr'].forEach(function(s){
+    document.getElementById(s).style.display='none';
+  });
+  document.getElementById(id).style.display=(id==='successScr')?'flex':'block';
+}
+function goGrid(){showOnly('gridSec');buildGrid();}
+function goRot(){showOnly('rotSec');buildRot();}
+function goText(){showOnly('textSec');buildText();}
+
+// ── 성공 ──────────────────────────────────────────────
+function showSuccess(){
+  showOnly('successScr');
+  setTimeout(function(){
+    closeOverlay();
+    var cb=document.getElementById('rcCb');
+    cb.classList.remove('checking');cb.classList.add('checked');
+    appState='done';
+    document.getElementById('rcAnchor').style.cursor='default';
+  },1300);
+}
+
+// ── 오버레이 열기/닫기 ────────────────────────────────
+var appState='idle';
+function startV(){
+  if(appState!=='idle')return;
+  appState='checking';
+  var cb=document.getElementById('rcCb');cb.classList.add('checking');
+  setTimeout(function(){
+    cb.classList.remove('checking');
+    openOverlay();
+  },800+Math.random()*500);
+}
+function openOverlay(){
+  showOnly('gridSec');
+  buildGrid(Math.random()<.4?4:3);
+  document.getElementById('overlay').classList.add('show');
+}
+function closeOverlay(){
+  document.getElementById('overlay').classList.remove('show');
+  if(appState!=='done'){appState='idle';document.getElementById('rcCb').classList.remove('checking','checked');}
+}
+
+// ── 이벤트 바인딩 (onclick 대신 addEventListener) ────
+window.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('rcAnchor').addEventListener('click',function(){startV();});
+  document.getElementById('hclose').addEventListener('click',function(){closeOverlay();});
+  document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeOverlay();});
+
+  document.getElementById('btn-refresh-grid').addEventListener('click',function(){buildGrid(Math.random()<.4?4:3);});
+  document.getElementById('btn-go-rot').addEventListener('click',function(){goRot();});
+  document.getElementById('btn-go-text').addEventListener('click',function(){goText();});
+  document.getElementById('gridVerify').addEventListener('click',function(){verifyGrid();});
+
+  document.getElementById('btn-refresh-rot').addEventListener('click',function(){buildRot();});
+  document.getElementById('btn-go-grid2').addEventListener('click',function(){goGrid();});
+  document.getElementById('btn-go-text2').addEventListener('click',function(){goText();});
+  document.getElementById('rotVerify').addEventListener('click',function(){verifyRot();});
+  document.getElementById('rotL').addEventListener('click',function(){rotBy(-30);});
+  document.getElementById('rotR').addEventListener('click',function(){rotBy(30);});
+
+  document.getElementById('btn-refresh-text').addEventListener('click',function(){buildText();});
+  document.getElementById('btn-go-grid3').addEventListener('click',function(){goGrid();});
+  document.getElementById('btn-go-rot2').addEventListener('click',function(){goRot();});
+  document.getElementById('textVerify').addEventListener('click',function(){verifyText();});
+  document.getElementById('textInp').addEventListener('keydown',function(e){if(e.key==='Enter')verifyText();});
 });
-
-/* ═══════════════════════════════════════════════════
-   유틸
-═══════════════════════════════════════════════════ */
-function showSuccess(msg){
-  var el=document.getElementById('successMsg');
-  el.textContent=msg; el.classList.add('on');
-}
-function hideSuccess(){ document.getElementById('successMsg').classList.remove('on'); }
-
-function showErr(msg){
-  var el=document.getElementById('errMsg');
-  el.textContent=msg; el.classList.add('on');
-}
-function hideErr(){ document.getElementById('errMsg').classList.remove('on'); }
 </script>
-
 </body>
 </html>
